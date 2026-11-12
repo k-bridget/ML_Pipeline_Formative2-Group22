@@ -20,22 +20,22 @@ A sequential multimodal authentication and personalized product recommendation p
 │   │   ├── images/                      # 3 members × 3 expressions (Neutral, Smiling, Surprised)
 │   │   └── audio/                       # 3 members × 2 phrases (_approve.mp3, _transaction.mp3)
 │   └── processed/
-│       ├── merged_customer_data.csv     # 213 merged & feature-engineered records (21 columns)
-│       ├── image_features.csv           # 45 extracted facial feature vectors (9 originals + 36 augmented)
-│       └── audio_features.csv           # 18 extracted acoustic feature vectors (6 originals + 12 augmented)
+│       ├── merged_customer_data.csv     
+│       ├── image_features.csv           
+│       └── audio_features.csv           
 ├── notebooks/
-│   ├── 01_data_merge_and_eda.ipynb       # Task 1: Cleaning, inner merge, EDA plots & feature engineering
-│   ├── 03_image_processing.ipynb        # Task 2: Image loading, display, augmentation & DeepFace/histogram extraction
-│   ├── 02_sound_data_collection_and_processing.ipynb        # Task 3: Audio waveforms, spectrograms, noise/pitch/stretch & MFCC extraction
-│   └── 04_model_training.ipynb          # Task 4: Training & evaluation (Accuracy, Macro F1, Log Loss)
+│   ├── 01_data_merge_and_eda.ipynb      
+│   ├── 03_image_processing.ipynb        
+│   ├── 02_sound_data_collection_and_processing.ipynb        
+│   └── 04_model_training.ipynb          
 ├── scripts/
-│   ├── process_audio.py                 # Deterministic audio augmentation & feature extraction utilities
-│   ├── train_models.py                  # End-to-end training & model serialization script
-│   └── app.py                           # Command-line system simulation (authorized & unauthorized flows)
+│   ├── process_audio.py                 
+│   ├── train_models.py                  
+│   └── app.py                           
 ├── models/
-│   ├── face_model.joblib                # Logistic Regression facial classifier + StandardScaler
-│   ├── voice_model.joblib               # Random Forest voiceprint classifier + StandardScaler
-│   ├── product_recommender.joblib       # XGBoost multiclass product recommendation classifier
+│   ├── face_model.joblib                
+│   ├── voice_model.joblib               
+│   ├── product_recommender.joblib      
 │   └── *_encoder.joblib / *_features.joblib
 ├── README.md
 
