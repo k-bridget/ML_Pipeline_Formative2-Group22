@@ -54,7 +54,7 @@ cd ML_Pipeline_Formative2-Group22
 
 # 2. Install dependencies
 
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-demo.txt
 
 On macOS, install the OpenMP runtime required by XGBoost before running the demo:
 
