@@ -48,4 +48,47 @@ cd ML_Pipeline_Formative2-Group22
 
 # 2. Install dependencies
 
-pip install pandas numpy scikit-learn xgboost librosa soundfile opencv-python deepface matplotlib seaborn joblib
+python -m pip install -r requirements-demo.txt
+
+On macOS, install the OpenMP runtime required by XGBoost before running the demo:
+
+```bash
+brew install libomp
+```
+
+## System Demonstration
+
+Use Python 3.10-3.13, then run the command-line demonstration from the repository root after installing the dependencies. The scikit-learn version is pinned to match the serialized model artifacts:
+
+```bash
+python scripts/app.py \
+	--image "data/raw/images/Bridget/neutral.jpeg" \
+	--audio "data/raw/audio/Bridget_approve.mp3" \
+	--face-user Bridget \
+	--customer-id A151
+```
+
+The saved voice model verifies speaker identity, then the app checks that it matches the supplied face identity before loading the product recommender. A successful authentication prints the top three product categories for the selected customer. To simulate an unauthorized cross-modal attempt, pair Bridget's image with another member's audio:
+
+```bash
+python scripts/app.py \
+	--image "data/raw/images/Bridget/neutral.jpeg" \
+	--audio "data/raw/audio/Merci_approve.mp3" \
+	--face-user Bridget \
+	--customer-id A151
+```
+
+That attempt is denied when the predicted voice identity does not match the face identity. A voice-confidence rejection can also be exercised with a stricter threshold, for example `--voice-threshold 0.99`.
+
+To simulate a face rejection before voice validation, use an identity that is not in the enrolled class list:
+
+```bash
+python scripts/app.py \
+	--image "data/raw/images/Bridget/neutral.jpeg" \
+	--audio "data/raw/audio/Bridget_approve.mp3" \
+	--face-user Unauthorized
+```
+
+Here `--face-user Unauthorized` is a decision-logic fixture; it does not claim that the saved image model recognized an unknown person.
+
+**Demonstration limitations:** `--face-user` is an explicit identity fixture for exercising the sequential decision logic, not image-model inference. This checkout has no image feature extraction script or `image_features.csv`; its raw images are only Bridget's, and the face model expects 560 engineered values. Supply `--face-features-csv` with the image pipeline's output to run the face model. The saved voice model classifies the speaker; it does not recognize whether the spoken words actually say "Yes, approve" or "Confirm transaction". The product recommendation is a prediction from an existing customer row, not a prediction using image or voice features.
