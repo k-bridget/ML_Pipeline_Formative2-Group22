@@ -94,7 +94,13 @@ def face_features_from_csv(csv_path: Path, image_path: Path, expected: list[str]
     frame = pd.read_csv(csv_path)
     if "source_file" not in frame.columns:
         raise ValueError("Face feature CSV must include a source_file column.")
-    matches = frame[frame["source_file"].astype(str).map(lambda value: Path(value).name) == image_path.name]
+    matches = frame[
+        frame["source_file"].astype(str).map(lambda value: Path(value).name) == image_path.name
+    ]
+    if "person" in matches.columns:
+        matches = matches[matches["person"].astype(str) == image_path.parent.name]
+    if "augmentation" in matches.columns:
+        matches = matches[matches["augmentation"].astype(str) == "original"]
     if len(matches) != 1:
         raise ValueError(
             f"Expected one feature row for {image_path.name}, found {len(matches)}. "
@@ -104,6 +110,12 @@ def face_features_from_csv(csv_path: Path, image_path: Path, expected: list[str]
     if missing:
         raise ValueError(f"Face feature CSV is missing model inputs: {missing}")
     return matches[expected].astype(float)
+
+
+def face_features_from_image(image_path: Path, expected: list[str]) -> pd.DataFrame:
+    from process_images import extract_face_features
+
+    return extract_face_features(image_path, expected)
 
 
 def recommend_product(models: dict[str, Any], customer_id: str | None) -> None:
@@ -174,6 +186,14 @@ def run_demo(
         except (FileNotFoundError, ValueError) as error:
             print(f"ACCESS DENIED: {error}")
             return 2
+    else:
+        try:
+            image_features = face_features_from_image(image_path, models["face_features"])
+        except (FileNotFoundError, RuntimeError, ValueError) as error:
+            print(f"ACCESS DENIED: {error}")
+            return 2
+
+    if face_user is None:
         face_identity, face_confidence, _ = predict_identity(
             models["face_model"],
             models["face_encoder"],
@@ -184,14 +204,6 @@ def run_demo(
         if face_identity is None:
             print("ACCESS DENIED: face identity confidence is below threshold.")
             return 2
-    else:
-        print(
-            "ACCESS DENIED: live image inference is unavailable. "
-            "This repository has no checked-in image feature extractor or image_features.csv. "
-            "Use --face-user for the explicitly labeled demo fixture, or provide "
-            "--face-features-csv from the image preprocessing pipeline."
-        )
-        return 2
 
     try:
         voice_row = extract_voice_features(audio_path, models["voice_features"])
