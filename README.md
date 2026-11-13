@@ -2,13 +2,19 @@
 
 A sequential multimodal authentication and personalized product recommendation pipeline combining **Facial Recognition**, **Voiceprint Verification**, and **Tabular Modeling**.
 
-## System Architecture & Security Flow
+## Group Membera
+
+1. Merci Nzabinesha
+2. Yves Niyigena
+4. Bridget Karungi
+
+## System Architecture 
 
 1. **Facial Recognition Model:** Extracts facial embeddings/histograms and verifies user identity.
 2. **Voiceprint Verification Model:** Validates spoken authorization phrases (*"Yes, approve"*, *"Confirm transaction"*).
 3. **Product Recommendation Model:** Predicts the customer's preferred product category (`Books`, `Clothing`, `Electronics`, `Groceries`, `Sports`) from merged social media and transaction records.
 
----
+
 
 ## Repository Structure
 
@@ -48,7 +54,7 @@ cd ML_Pipeline_Formative2-Group22
 
 # 2. Install dependencies
 
-python -m pip install -r requirements-demo.txt
+python -m pip install -r requirements.txt
 
 On macOS, install the OpenMP runtime required by XGBoost before running the demo:
 
