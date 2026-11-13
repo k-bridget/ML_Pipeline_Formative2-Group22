@@ -45,26 +45,25 @@ A sequential multimodal authentication and personalized product recommendation p
 │   └── *_encoder.joblib / *_features.joblib
 ├── README.md
 
-### Setup Instruction
+### Setup Instructions
 
-# 1. Clone the repository
-
-git clone https://github.com/k-bridget/ML_Pipeline_Formative2-Group22.git
-cd ML_Pipeline_Formative2-Group22
-
-# 2. Install dependencies
-
-python -m pip install -r requirements-demo.txt
-
-On macOS, install the OpenMP runtime required by XGBoost before running the demo:
+Run the demo from the repository root. Python 3.12 is recommended; the saved scikit-learn models were serialized with version 1.6.1. On macOS, XGBoost also needs the OpenMP runtime.
 
 ```bash
+git clone https://github.com/k-bridget/ML_Pipeline_Formative2-Group22.git
+cd ML_Pipeline_Formative2-Group22
 brew install libomp
+uv python install 3.12
+uv venv --python 3.12 "$HOME/.venvs/ml-pipeline-demo"
+source "$HOME/.venvs/ml-pipeline-demo/bin/activate"
+uv pip install --python "$HOME/.venvs/ml-pipeline-demo/bin/python" -r requirements-demo.txt
 ```
 
 ## System Demonstration
 
-Use Python 3.10-3.13, then run the command-line demonstration from the repository root after installing the dependencies. The scikit-learn version is pinned to match the serialized model artifacts:
+#### 1. Run an authorized transaction
+
+Use Bridget's real image and approval recording. The image model and voice model should both identify Bridget; only then should the app print product recommendations for customer `A151`.
 
 ```bash
 python scripts/app.py \
@@ -73,7 +72,11 @@ python scripts/app.py \
 	--customer-id A151
 ```
 
-The app extracts RGB histograms and a Facenet512 embedding from the image using the same preprocessing defined in `notebooks/01_image_processing.ipynb`, then predicts the face identity. It extracts acoustic features from the audio, predicts the speaker identity, and only recommends products when the two identities agree. A successful authentication prints the top three product categories for the selected customer. To simulate an unauthorized cross-modal attempt, pair Bridget's image with another member's audio:
+The app extracts RGB histograms and a Facenet512 embedding from the image using the same preprocessing defined in `notebooks/01_image_processing.ipynb`, then predicts the face identity. It extracts acoustic features from the audio, predicts the speaker identity, and only recommends products when the two identities agree. A successful authentication prints the top three product categories for the selected customer.
+
+#### 2. Simulate an unauthorized cross-modal attempt
+
+Pair Bridget's image with another member's audio:
 
 ```bash
 python scripts/app.py \
@@ -82,7 +85,9 @@ python scripts/app.py \
 	--customer-id A151
 ```
 
-That attempt is denied when the predicted voice identity does not match the face identity. A voice-confidence rejection can also be exercised with a stricter threshold, for example `--voice-threshold 0.99`.
+That attempt should be denied because the face and voice identities disagree. No recommendation should be shown.
+
+#### 3. Simulate an unrecognized face
 
 To simulate a face rejection before voice validation with an explicit fixture, use an identity that is not in the enrolled class list:
 
@@ -93,6 +98,29 @@ python scripts/app.py \
 	--face-user Unauthorized
 ```
 
-`--face-user` explicitly bypasses image inference and is only for demonstrating the decision-logic denial path; normal runs use the image model.
+This is an explicit decision-logic fixture: `--face-user Unauthorized` bypasses image inference and supplies an identity not present in the enrolled classes. Use it to demonstrate the early face-denial branch, not as evidence that the image model recognized an unknown person.
 
-**Demonstration limitations:** the face classifier is trained on only three enrolled people and nine source photos, so use it as an assignment demonstration, not production authentication. Live face inference uses DeepFace Facenet512 embeddings and requires the first-run model weight download. The voice model classifies the speaker; it does not recognize whether the spoken words actually say "Yes, approve" or "Confirm transaction". The product recommendation is a prediction from an existing customer row, not a prediction using image or voice features. `--face-features-csv` runs inference from the notebook's compatible feature export. The `--face-user` option bypasses image inference and should only be used to simulate decision-logic branches.
+#### 4. Simulate a low-confidence voice rejection
+
+Set a stricter voice threshold. Bridget's approval sample normally scores below `0.99`, so the voice gate should reject it:
+
+```bash
+python scripts/app.py \
+	--image "data/raw/image_recordings_dataset/Images/Bridget/Neutral.jpeg" \
+	--audio "data/raw/audio/Bridget_approve.mp3" \
+	--customer-id A151 \
+	--voice-threshold 0.99
+```
+
+#### 5. Try another enrolled member
+
+```bash
+python scripts/app.py \
+	--image "data/raw/image_recordings_dataset/Images/Yves/Neutral.jpeg" \
+	--audio "data/raw/audio/Yves_transaction.mp3" \
+	--customer-id A151
+```
+
+The DeepFace Facenet512 weights are downloaded on the first live image inference. The optional `--face-features-csv` argument can instead use the compatible feature table generated by `notebooks/01_image_processing.ipynb`.
+
+**Demonstration limitations:** the face classifier is trained on only three enrolled people and nine source photos. Live face inference uses DeepFace Facenet512 embeddings and requires the first-run model weight download. The voice model classifies the speaker; it does not recognize whether the spoken words actually say "Yes, approve" or "Confirm transaction". The product recommendation is a prediction from an existing customer row, not a prediction using image or voice features. `--face-features-csv` runs inference from the notebook's compatible feature export. The `--face-user` option bypasses image inference and should only be used to simulate decision-logic branches.
